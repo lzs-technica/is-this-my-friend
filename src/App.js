@@ -8,27 +8,47 @@ class App extends Component{
 
   constructor(props){
     super(props)
+    this.state = { username:'' }
+    this.handleChange = this.handleChange.bind(this)
+    this.handleSubmit = this.handleSubmit.bind(this)
   }
-  render() {
-      return (
-        <div className="App">
-        
-        <input type="text" id="userText"/>
-            <button id="analyze" onClick={()=> this.getSentimentResult("this is an example")}> Analyze </button>
-            <p> The sentiment is: <span id="sentiment">???</span></p>
-        </div>
-      );
 
+  handleSubmit(event){
+    const { username } = this.state
+    event.preventDefault()
+    getSubmissionFromUserName(username);
+  }
+
+  handleChange(event){
+      this.setState({
+        [event.target.name] : event.target.value
+      })
     }
 
-  getSentimentResult(userText){
+  getSubmissionFromUserName = (usernameInput) =>{
+    const snoowrap = require('snoowrap');
+
+    const r = new snoowrap({
+      userAgent: 'any',
+      clientId: 'vOaviBN-8ZB54TZQqoks2g',
+      clientSecret: 'UYdq4zNNoxk0Lb1REuuNa5UKLRK1vw',
+      refresh_token: '1009166006410-trhKOHTxb10Pya93xhEtvQTrmKR6_A',
+    });
+
+    const submissions = r.getUser(usernameInput).getSubmissions();
+    submissions.then(console.log);
+    const first = submissions[0].selftext;
+    getSentimentResult(first);
+  }
+
+  getSentimentResult = (submission) => {
   console.log( process.env.REACT_APP_AZURE_API_KEY)
       var data = JSON.stringify({
       "documents": [
           {
           "id": "1",
           "language": "en",
-          "text": userText
+          "text": submission
           }
       ]
       });
@@ -52,6 +72,29 @@ class App extends Component{
           console.log(error);
       });
     }
+
+
+  render() {
+      return (
+        <div className="App">
+            <form onSubmit={this.handleSubmit}>
+
+            <label htmlFor="username">
+              <input
+                  type="text"
+                  name="username"
+                  value = {this.state.username}
+                  onChange={this.handleChange}
+              />
+          </label>
+              <button className="analyze" onClick = {this.handleSubmit}>Analyze</button>
+          </form>
+          <p> The sentiment is: <span id="sentiment">???</span></p>
+        </div>
+
+      );
+
+  }
   
 }
 
